@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Air Drawing — Holographic Interface</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" crossorigin href="/assets/index-CEPhUUIq.css">
+</head>
+<body>
+  <!-- Scanline overlay -->
+  <div class="scanline-overlay"></div>
+
+  <!-- Main container -->
+  <div id="app-container">
+    <!-- Video feed (hidden, used as source) -->
+    <video id="webcam" autoplay playsinline muted></video>
+
+    <!-- Canvas layers -->
+    <canvas id="bg-canvas"></canvas>
+    <canvas id="drawing-canvas"></canvas>
+    <canvas id="ui-canvas"></canvas>
+
+    <!-- Top status bar -->
+    <div id="status-bar">
+      <div class="status-left">
+        <span class="logo">◈ AIR DRAW</span>
+        <span id="fps-counter" class="status-chip">FPS: --</span>
+      </div>
+      <div class="status-center">
+        <span id="gesture-label" class="gesture-indicator">INITIALIZING...</span>
+      </div>
+      <div class="status-right">
+        <span id="hand-status" class="status-chip offline">NO HANDS</span>
+      </div>
+    </div>
+
+    <!-- Floating side panel -->
+    <div id="side-panel">
+      <div class="panel-section">
+        <div class="panel-title">MODE</div>
+        <div id="mode-display" class="mode-box">IDLE</div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">TOOLS</div>
+        <div class="tool-buttons">
+          <button class="tool-btn active" data-tool="brush" title="Brush">✏️</button>
+          <button class="tool-btn" data-tool="line" title="Line">╱</button>
+          <button class="tool-btn" data-tool="rect" title="Rectangle">▭</button>
+          <button class="tool-btn" data-tool="circle" title="Circle">◯</button>
+          <button class="tool-btn" data-tool="triangle" title="Triangle">△</button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">COLOR</div>
+        <div id="color-palette" class="color-grid">
+          <!-- Row 1: Neon primaries -->
+          <button class="color-btn active" data-color="#00f0ff" style="--btn-color:#00f0ff"></button>
+          <button class="color-btn" data-color="#ff00ff" style="--btn-color:#ff00ff"></button>
+          <button class="color-btn" data-color="#00ff88" style="--btn-color:#00ff88"></button>
+          <button class="color-btn" data-color="#ff6600" style="--btn-color:#ff6600"></button>
+          <!-- Row 2: More neons -->
+          <button class="color-btn" data-color="#aa00ff" style="--btn-color:#aa00ff"></button>
+          <button class="color-btn" data-color="#ff0044" style="--btn-color:#ff0044"></button>
+          <button class="color-btn" data-color="#ffff00" style="--btn-color:#ffff00"></button>
+          <button class="color-btn" data-color="#ff69b4" style="--btn-color:#ff69b4"></button>
+          <!-- Row 3: Pastels & whites -->
+          <button class="color-btn" data-color="#00ffcc" style="--btn-color:#00ffcc"></button>
+          <button class="color-btn" data-color="#7b68ee" style="--btn-color:#7b68ee"></button>
+          <button class="color-btn" data-color="#ffffff" style="--btn-color:#ffffff"></button>
+          <button class="color-btn" data-color="#ff4500" style="--btn-color:#ff4500"></button>
+        </div>
+        <!-- Gradient toggle -->
+        <button id="btn-gradient" class="gradient-toggle" title="Toggle Gradient Brush">
+          <span class="gradient-preview"></span>
+          <span class="gradient-label">GRADIENT</span>
+        </button>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">BRUSH</div>
+        <div id="brush-preview" class="brush-circle"></div>
+        <div id="brush-size-label" class="panel-value">4px</div>
+        <input type="range" id="brush-slider" class="neon-slider" min="2" max="30" value="4" />
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">ACTIONS</div>
+        <div class="action-buttons">
+          <button id="btn-undo" class="action-btn" title="Undo">↶</button>
+          <button id="btn-redo" class="action-btn" title="Redo">↷</button>
+          <button id="btn-clear" class="action-btn" title="Clear">✕</button>
+          <button id="btn-save-png" class="action-btn" title="Save PNG">📷</button>
+          <button id="btn-save-svg" class="action-btn" title="Export SVG">📐</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gesture guide (bottom) -->
+    <div id="gesture-guide">
+      <div class="guide-item"><span class="guide-icon">☝️</span><span>Draw</span></div>
+      <div class="guide-item"><span class="guide-icon">✌️</span><span>Erase</span></div>
+      <div class="guide-item"><span class="guide-icon">🤟</span><span>Color</span></div>
+      <div class="guide-item"><span class="guide-icon">✊</span><span>Pause</span></div>
+      <div class="guide-item"><span class="guide-icon">🖐️</span><span>Clear</span></div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay">
+      <div class="loader-content">
+        <div class="loader-ring"></div>
+        <div class="loader-text">INITIALIZING HAND TRACKING...</div>
+        <div id="loading-status" class="loader-sub">Loading MediaPipe...</div>
+      </div>
+    </div>
+
+    <!-- Permission overlay -->
+    <div id="permission-overlay" class="hidden">
+      <div class="permission-content">
+        <div class="permission-icon">📷</div>
+        <h2>Camera Access Required</h2>
+        <p>This app needs your webcam to track hand gestures for air drawing.</p>
+        <button id="btn-grant-camera" class="neon-btn">ENABLE CAMERA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MediaPipe CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466124/drawing_utils.min.js"></script>
+
+  <!-- App modules -->
+  <script src="hand-tracker.js"></script>
+  <script src="drawing-engine.js"></script>
+  <script src="ui-controller.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
