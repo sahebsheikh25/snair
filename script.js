@@ -50,6 +50,9 @@
     // Start render loop immediately
     requestAnimationFrame(renderLoop);
 
+    // Hide initial loading overlay
+    document.getElementById('loading-overlay').style.display = 'none';
+
     // Show permission overlay to ask for camera access
     ui.showPermissionOverlay();
     document.getElementById('btn-grant-camera').addEventListener('click', async () => {

@@ -35,6 +35,14 @@ class HandTracker {
     this.videoEl = videoEl;
     this.onResults = onResults;
 
+    // Check if MediaPipe libraries are loaded
+    if (typeof window.Hands === 'undefined') {
+      throw new Error('MediaPipe Hands library not loaded. Check CDN connection.');
+    }
+    if (typeof window.Camera === 'undefined') {
+      throw new Error('MediaPipe Camera library not loaded. Check CDN connection.');
+    }
+
     onStatusUpdate?.('Configuring hand detection model...');
 
     // Create MediaPipe Hands instance
