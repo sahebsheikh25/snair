@@ -48,7 +48,7 @@ class HandTracker {
     // Create MediaPipe Hands instance
     this.hands = new window.Hands({
       locateFile: (file) =>
-        `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`,
+        `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
     });
 
     this.hands.setOptions({
